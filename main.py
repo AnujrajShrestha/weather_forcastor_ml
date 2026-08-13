@@ -43,7 +43,7 @@ def predict(features: weather_info):
             'Precipitation (%)': features.Precipitation,
             'Atmospheric Pressure': features.Atmospheric_Pressure,
             'Wind Speed': features.Wind_Speed,
-            'UV Index': features.UV_Index,
+            'UV Index': features.UV_index,
             'Visibility (km)': features.Visibility,
             'Cloud Cover': features.Cloud_Cover,
             'Season': features.Season,
