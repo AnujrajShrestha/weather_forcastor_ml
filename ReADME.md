@@ -1,375 +1,282 @@
-Weather Forecastor
+# 🌦️ Weather Forecastor ML
 
-A machine learning–powered weather forecasting project that predicts temperature and weather type from atmospheric and environmental features.
+A machine learning–powered weather forecasting system that predicts **temperature** and **weather type** from atmospheric and environmental conditions.
 
-The project contains two parts:
+The project combines an end-to-end **scikit-learn ML pipeline** with a **FastAPI backend** for serving predictions through a REST API.
 
-Machine Learning pipeline — developed in project7.ipynb
+## 🚀 Overview
 
-FastAPI inference backend — implemented in main.py
+This project solves two machine learning problems:
 
-Overview
+* 🌡️ **Temperature Prediction** — Regression using `RandomForestRegressor`
+* 🌤️ **Weather Type Prediction** — Classification using `RandomForestClassifier`
 
-This project solves two related ML tasks using Random Forest models:
+The trained models are saved as complete preprocessing + model pipelines using Joblib and loaded directly by the FastAPI application.
 
-Temperature Prediction — regression problem that predicts a continuous temperature value.
+### Weather Classes
 
-Weather Type Prediction — classification problem that predicts one of four weather categories:
+The classification model predicts one of:
 
-Rainy
+* ☀️ Sunny
+* 🌧️ Rainy
+* ☁️ Cloudy
+* ❄️ Snowy
 
-Cloudy
+## ✨ Features
 
-Sunny
+* End-to-end machine learning pipelines
+* Random Forest regression
+* Random Forest classification
+* Feature preprocessing with `ColumnTransformer`
+* Numerical feature transformation and scaling
+* Categorical feature encoding
+* Hyperparameter tuning with `RandomizedSearchCV`
+* 5-fold cross-validation
+* Model evaluation
+* Joblib model serialization
+* Pydantic input validation
+* FastAPI REST API
+* Interactive Swagger documentation
+* Exploratory data analysis with Pandas, Matplotlib, and Seaborn
 
-Snowy
+## 🧠 Machine Learning Pipeline
 
-The trained pipelines are exported with Joblib and loaded directly by the FastAPI application.
+The project follows this workflow:
 
+```text
 Dataset
+   ↓
+Data Cleaning
+   ↓
+Exploratory Data Analysis
+   ↓
+Feature Engineering
+   ↓
+Train / Test Split
+   ↓
+Preprocessing Pipelines
+   ↓
+RandomizedSearchCV
+   ↓
+Model Training
+   ↓
+Model Evaluation
+   ↓
+Save Trained Pipelines
+   ↓
+FastAPI Deployment
+```
 
-The notebook uses weather_classification_data.csv.
+## 📊 Dataset
 
-The dataset contains 13,200 records and 11 columns:
+The project uses `weather_classification_data.csv`.
 
-Feature
+The dataset contains **13,200 records and 11 columns**.
 
-Description
+| Feature              | Description               |
+| -------------------- | ------------------------- |
+| Temperature          | Target for regression     |
+| Humidity             | Relative humidity         |
+| Wind Speed           | Wind speed                |
+| Precipitation (%)    | Precipitation percentage  |
+| Cloud Cover          | Cloud-cover category      |
+| Atmospheric Pressure | Atmospheric pressure      |
+| UV Index             | UV index                  |
+| Season               | Season of the year        |
+| Visibility (km)      | Visibility distance       |
+| Location             | Location type             |
+| Weather Type         | Target for classification |
 
-Temperature
+### Categorical Values
 
-Target for regression
+**Cloud Cover**
 
-Humidity
+* partly cloudy
+* clear
+* overcast
+* cloudy
 
-Relative humidity
+**Season**
 
-Wind Speed
+* Winter
+* Spring
+* Summer
+* Autumn
 
-Wind speed
+**Location**
 
-Precipitation (%)
+* inland
+* mountain
+* coastal
 
-Precipitation percentage
+**Weather Type**
 
-Cloud Cover
+* Rainy
+* Cloudy
+* Sunny
+* Snowy
 
-Cloud-cover category
+## 🔧 Preprocessing
 
-Atmospheric Pressure
+The project uses `ColumnTransformer` to apply different transformations to different feature groups.
 
-Atmospheric pressure
-
-UV Index
-
-UV index
-
-Season
-
-Season of the year
-
-Visibility (km)
-
-Visibility in kilometers
-
-Location
-
-Location type
-
-Weather Type
-
-Target for classification
-
-The categorical values used by the API are:
-
-Cloud Cover: partly cloudy, clear, overcast, cloudy
-
-Season: Winter, Spring, Summer, Autumn
-
-Location: inland, mountain, coastal
-
-The classification target contains Rainy, Cloudy, Sunny, and Snowy.
-
-Machine Learning Workflow
-
-The notebook follows a complete preprocessing and model-training workflow:
-
-Load the dataset with pandas.
-
-Inspect the dataset and data types.
-
-Remove missing values.
-
-Perform descriptive statistics and exploratory analysis.
-
-Separate regression and classification targets.
-
-Split the data into training and testing sets using a 70/30 split with random_state=42.
-
-Build preprocessing pipelines.
-
-Train Random Forest regression and classification models.
-
-Tune hyperparameters using RandomizedSearchCV.
-
-Evaluate the optimized models.
-
-Save the complete fitted pipelines with Joblib.
-
-The dataset was checked for missing values; the notebook reports no remaining null values after cleaning.
-
-Preprocessing Pipeline
-
-The project uses a ColumnTransformer with separate transformations for different feature groups.
-
-Left-skewed numerical features
+### Left-Skewed Numerical Features
 
 The following features use:
 
-PowerTransformer(method="yeo-johnson") → StandardScaler
+```text
+PowerTransformer(method="yeo-johnson")
+        ↓
+StandardScaler
+```
 
-Humidity
+Features:
 
-Precipitation (%)
+* Humidity
+* Precipitation (%)
+* Atmospheric Pressure
 
-Atmospheric Pressure
-
-Right-skewed numerical features
-
-The following features use:
-
-log1p → StandardScaler
-
-Wind Speed
-
-UV Index
-
-Visibility (km)
-
-Categorical features
+### Right-Skewed Numerical Features
 
 The following features use:
 
-SimpleImputer(strategy="most_frequent") → OneHotEncoder(handle_unknown="ignore")
+```text
+log1p
+  ↓
+StandardScaler
+```
 
-Cloud Cover
+Features:
 
-Season
+* Wind Speed
+* UV Index
+* Visibility (km)
 
-Location
+### Categorical Features
 
-Because preprocessing is included inside the scikit-learn pipelines, the same transformations used during training are automatically applied during inference.
+Categorical features use:
 
-Models
+```text
+SimpleImputer(strategy="most_frequent")
+        ↓
+OneHotEncoder(handle_unknown="ignore")
+```
 
-1. Temperature Regression
+Features:
+
+* Cloud Cover
+* Season
+* Location
+
+Because preprocessing is included inside the trained pipelines, the same transformations are automatically applied during inference.
+
+## 🤖 Models
+
+### 1. Temperature Regression
 
 Model:
 
+```text
 RandomForestRegressor
+```
 
-Hyperparameter tuning was performed with RandomizedSearchCV using:
+Hyperparameter tuning:
 
-15 random configurations
+* `RandomizedSearchCV`
+* 15 random configurations
+* 5-fold cross-validation
+* R² scoring
+* `random_state=42`
+* `n_jobs=-1`
 
-5-fold cross-validation
+Selected parameters:
 
-R² scoring
+| Parameter           | Value |
+| ------------------- | ----: |
+| `n_estimators`      |   300 |
+| `max_depth`         |    10 |
+| `min_samples_split` |    10 |
+| `min_samples_leaf`  |     1 |
 
-random_state=42
+### Performance
 
-n_jobs=-1
+| Metric |  Score |
+| ------ | -----: |
+| R²     | 0.6032 |
+| MAE    | 7.8928 |
 
-The selected parameters were:
+---
 
-Parameter
-
-Value
-
-n_estimators
-
-300
-
-max_depth
-
-10
-
-min_samples_split
-
-10
-
-min_samples_leaf
-
-1
-
-Test-set performance:
-
-R²: 0.6032
-
-MAE: 7.8928
-
-2. Weather Type Classification
+### 2. Weather Type Classification
 
 Model:
 
+```text
 RandomForestClassifier
+```
 
-Hyperparameter tuning used:
+Hyperparameter tuning:
 
-15 random configurations
+* `RandomizedSearchCV`
+* 15 random configurations
+* 5-fold cross-validation
+* Accuracy scoring
+* `random_state=42`
+* `n_jobs=-1`
 
-5-fold cross-validation
+Selected parameters:
 
-accuracy scoring
+| Parameter           | Value |
+| ------------------- | ----: |
+| `n_estimators`      |   200 |
+| `max_depth`         |    15 |
+| `min_samples_split` |     5 |
+| `min_samples_leaf`  |     2 |
 
-random_state=42
+### Performance
 
-n_jobs=-1
+**Test Accuracy: 90.30%**
 
-The selected parameters were:
+| Weather Type | Precision | Recall | F1-Score |
+| ------------ | --------: | -----: | -------: |
+| Cloudy       |      0.88 |   0.89 |     0.88 |
+| Rainy        |      0.90 |   0.89 |     0.89 |
+| Snowy        |      0.90 |   0.93 |     0.92 |
+| Sunny        |      0.94 |   0.90 |     0.92 |
 
-Parameter
+Overall macro and weighted averages are approximately **0.90**.
 
-Value
+## 💾 Saved Models
 
-n_estimators
+The trained pipelines are exported using Joblib:
 
-200
-
-max_depth
-
-15
-
-min_samples_split
-
-5
-
-min_samples_leaf
-
-2
-
-Test-set performance:
-
-Accuracy: 90.30%
-
-Classification report:
-
-Weather Type
-
-Precision
-
-Recall
-
-F1-score
-
-Cloudy
-
-0.88
-
-0.89
-
-0.88
-
-Rainy
-
-0.90
-
-0.89
-
-0.89
-
-Snowy
-
-0.90
-
-0.93
-
-0.92
-
-Sunny
-
-0.94
-
-0.90
-
-0.92
-
-Overall macro and weighted averages are approximately 0.90.
-
-Saved Models
-
-The notebook saves the best complete pipelines as:
-
+```text
 random_forest_regression.pkl
 random_forest_classification.pkl
+```
 
-These files contain the preprocessing and trained model, allowing the API to accept the original feature representation without manually reproducing the notebook's transformations.
+Each file contains both the preprocessing steps and trained model, allowing the API to receive the original feature representation directly.
 
-FastAPI Backend
+## ⚡ FastAPI Backend
 
-The API is implemented with FastAPI.
+The trained pipelines are served through FastAPI.
 
-The backend loads both trained pipelines at startup:
+### API Endpoints
 
-model_regression = joblib.load("random_forest_regression.pkl")
-model_classification = joblib.load("random_forest_classification.pkl")
-
-The API validates incoming data with Pydantic.
-
-Input validation
-
-Field
-
-Accepted range / values
-
-Humidity
-
-0–100
-
-Precipitation
-
-0–120
-
-Atmospheric_Pressure
-
-980–1040
-
-Wind_Speed
-
-0–90
-
-UV_index
-
-0–15
-
-Visibility
-
-0–20
-
-Cloud_Cover
-
-partly cloudy, clear, overcast, cloudy
-
-Season
-
-Winter, Spring, Summer, Autumn
-
-Location
-
-inland, mountain, coastal
-
-API Endpoints
-
-GET /
+#### `GET /`
 
 Returns a basic API status message.
 
-POST /predict
+#### `POST /predict`
 
-Accepts weather information and returns both predictions.
+Accepts weather information and returns:
 
-Example request:
+* predicted temperature
+* predicted weather type
 
+### Example Request
+
+```json
 {
   "Humidity": 73,
   "Precipitation": 82,
@@ -381,174 +288,188 @@ Example request:
   "Season": "Winter",
   "Location": "inland"
 }
+```
 
-Example response:
+### Example Response
 
+```json
 {
   "temperature": 14.23,
   "weather_type": "Rainy"
 }
+```
 
-The exact prediction depends on the loaded trained models and input values.
+The actual prediction depends on the trained models and input values.
 
-Project Structure
+## 🏗️ Project Structure
 
-weather-forecastor/
+```text
+weather_forcastor_ml/
 │
 ├── project7.ipynb
 ├── weather_classification_data.csv
+│
 ├── main.py
+│
 ├── random_forest_regression.pkl
 ├── random_forest_classification.pkl
+│
+├── requirements.txt
+├── runtime.txt
+├── .gitignore
 └── README.md
+```
 
-Installation
+## 🛠️ Technologies Used
 
-1. Clone the repository
+### Machine Learning
 
-git clone <your-repository-url>
-cd weather-forecastor
+* Python
+* NumPy
+* Pandas
+* Scikit-learn
+* Random Forest
+* ColumnTransformer
+* Pipeline
+* PowerTransformer
+* StandardScaler
+* OneHotEncoder
+* SimpleImputer
+* RandomizedSearchCV
+* Joblib
 
-2. Create a virtual environment
+### Backend
 
-Windows:
+* FastAPI
+* Pydantic
+* Uvicorn
 
+### Data Analysis & Visualization
+
+* Pandas
+* Matplotlib
+* Seaborn
+
+## ⚙️ Installation
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/AnujrajShrestha/weather_forcastor_ml.git
+
+cd weather_forcastor_ml
+```
+
+### 2. Create a Virtual Environment
+
+#### Windows
+
+```bash
 python -m venv .venv
+
 .venv\Scripts\activate
+```
 
-macOS/Linux:
+#### macOS / Linux
 
+```bash
 python3 -m venv .venv
+
 source .venv/bin/activate
+```
 
-3. Install dependencies
+### 3. Install Dependencies
 
-pip install fastapi uvicorn pandas numpy scikit-learn joblib matplotlib seaborn
+```bash
+pip install -r requirements.txt
+```
 
-Run the API
+## ▶️ Run the API
 
-Start the FastAPI server with:
+Start the FastAPI server:
 
+```bash
 uvicorn main:app --reload
+```
 
-The API will normally be available at:
+The API will be available at:
 
+```text
 http://127.0.0.1:8000
+```
 
-FastAPI's interactive API documentation is available at:
+### 📚 Swagger Documentation
 
+FastAPI provides interactive API documentation at:
+
+```text
 http://127.0.0.1:8000/docs
+```
 
-You can use /docs to test the /predict endpoint directly from the browser.
+You can use the `/docs` interface to send requests directly to the `/predict` endpoint.
 
-API Architecture
+## 🔄 API Architecture
 
-User Input
-    │
-    ▼
-FastAPI /predict
-    │
-    ▼
-Pydantic Validation
-    │
-    ▼
-Pandas DataFrame
-    │
-    ├───────────────┐
-    ▼               ▼
-Regression       Classification
-Pipeline         Pipeline
-    │               │
-    ▼               ▼
-Temperature      Weather Type
-Prediction       Prediction
-    │               │
-    └───────┬───────┘
-            ▼
-       JSON Response
+```text
+                User Input
+                    │
+                    ▼
+              FastAPI /predict
+                    │
+                    ▼
+            Pydantic Validation
+                    │
+                    ▼
+              Pandas DataFrame
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+ Regression Pipeline   Classification Pipeline
+          │                   │
+          ▼                   ▼
+ Temperature          Weather Type
+ Prediction            Prediction
+          │                   │
+          └─────────┬─────────┘
+                    ▼
+               JSON Response
+```
 
-Technologies Used
+## 🎯 What This Project Demonstrates
 
-Machine Learning
+This project demonstrates practical machine learning engineering concepts including:
 
-Python
+* Data preprocessing
+* Exploratory data analysis
+* Feature transformation
+* Feature scaling
+* Categorical encoding
+* Regression
+* Classification
+* Ensemble learning
+* Hyperparameter optimization
+* Cross-validation
+* Model evaluation
+* Model serialization
+* REST API development
+* ML model deployment architecture
 
-NumPy
+## ⚠️ Note
 
-pandas
+This project is intended primarily for **learning and demonstrating machine learning workflows**. The temperature model has an R² of approximately 0.60 on the test set, while the weather classification model achieves approximately 90.30% accuracy. These models should not be treated as professional meteorological forecasting systems.
 
-scikit-learn
+## 👨‍💻 Author
 
-Random Forest
+**Anuj Shrestha**
 
-PowerTransformer
+Machine learning models, preprocessing pipelines, model training, hyperparameter tuning, evaluation, model serialization, and FastAPI backend implementation are part of this project.
 
-StandardScaler
+## ⭐ Support
 
-OneHotEncoder
+If you find this project useful for learning or experimentation, consider giving the repository a ⭐ on GitHub.
 
-SimpleImputer
+---
 
-ColumnTransformer
+Built with Python, Scikit-learn, and FastAPI.
 
-Pipeline
-
-RandomizedSearchCV
-
-Joblib
-
-Backend
-
-FastAPI
-
-Pydantic
-
-Uvicorn
-
-pandas
-
-Joblib
-
-Data Analysis & Visualization
-
-Matplotlib
-
-Seaborn
-
-pandas
-
-Key Features
-
-Temperature prediction using Random Forest regression
-
-Weather-type classification using Random Forest classification
-
-End-to-end scikit-learn preprocessing pipelines
-
-Numerical transformation and scaling
-
-Categorical encoding
-
-Hyperparameter tuning with randomized search
-
-Cross-validation
-
-Pydantic request validation
-
-FastAPI REST endpoint
-
-Serialized production-ready model pipelines
-
-Interactive Swagger API documentation
-
-Notes
-
-The regression and classification models are separate trained pipelines, even though they share the same feature preprocessing strategy. The API runs both models for every /predict request and returns the predicted temperature and weather type together.
-
-The notebook also contains exploratory data analysis and model evaluation steps before exporting the final pipelines.
-
-Author
-
-Anuj Shrestha
-
-Machine Learning models, preprocessing pipelines, model training, hyperparameter tuning, evaluation, model serialization, and FastAPI backend implementation are authored as part of this project.
+```
